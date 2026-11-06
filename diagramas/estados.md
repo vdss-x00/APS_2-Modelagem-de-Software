@@ -1,21 +1,40 @@
 ```mermaid
 
+
 stateDiagram-v2
 
     [*] --> AguardandoLeitura
 
-    AguardandoLeitura --> LeituraCapturada : Sensor realiza captura
+    AguardandoLeitura --> ProcessamentoLeitura : novaLeitura() [sensorDisponivel == true] / iniciarCaptura()
 
-    LeituraCapturada --> EmValidacao : Enviar leitura
+    state ProcessamentoLeitura {
 
-    EmValidacao --> Armazenada : Valor dentro dos limites permitidos
+        [*] --> LeituraCapturada
 
-    EmValidacao --> Descartada : Valor fora dos limites permitidos
+        LeituraCapturada : entry / registrarTimestamp()
+        LeituraCapturada --> EmValidacao : leituraCapturada() [dadosDisponiveis == true] / enviarParaValidacao()
 
-    Armazenada --> Disponibilizada : Registrar leitura e liberar consulta
+        EmValidacao : do / verificarLimitesOperacionais()
 
-    Disponibilizada --> AguardandoLeitura : Aguardar próxima leitura
+        EmValidacao --> Armazenada : validarLeitura() [true] / persistirLeitura()
 
-    Descartada --> AguardandoLeitura : Aguardar próxima leitura
+        EmValidacao --> Descartada : validarLeitura() [false] / registrarFalha()
+
+        state Descartada {
+            entry / registrarAuditoria()
+            do / notificarLeituraInvalida()
+        }
+
+        Armazenada : entry / confirmarPersistencia()
+        Armazenada --> Disponibilizada : armazenamentoConcluido() [persistenciaOk == true] / liberarConsulta()
+
+        Disponibilizada : entry / disponibilizarLeitura()
+        
+        Disponibilizada --> [*] : consultaConcluida() / finalizarProcessamento()
+
+        Descartada --> [*] : descarteConcluido() / finalizarProcessamento()
+    }
+
+    ProcessamentoLeitura --> AguardandoLeitura : processamentoFinalizado() / aguardarProximaLeitura()
 
 ```

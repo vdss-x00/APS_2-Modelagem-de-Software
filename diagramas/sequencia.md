@@ -1,20 +1,36 @@
 ```mermaid
 sequenceDiagram
     actor Operador
-    participant GUI as Interface Gráfica
+    participant GUI as InterfaceGrafica
     participant Sensor
-    participant Maquina as Máquina
-    participant BD as Banco de Dados
+    participant Maquina
+    participant BD as BancoDeDados
 
-    Maquina->>Sensor: Disponibiliza dados operacionais
-    Sensor->>Sensor: Captura leitura dos sensores
-    Sensor->>BD: Envia leitura coletada
-    Sensor-->>GUI: Envia dados em tempo real
-    BD->>BD: Registra leitura no banco
-    BD-->>Sensor: Confirma armazenamento
-    Operador->>GUI: Solicita visualização das leituras
-    GUI->>BD: Consulta leituras históricas da máquina
-    BD-->>GUI: Retorna dados históricos
-    GUI-->>Operador: Exibe leituras dos sensores
+    Maquina-)Sensor: receberDadosOperacionais(dados: DadosOperacionaisDTO)
+
+    Sensor->>Sensor: capturarLeitura(): LeituraSensorDTO
+
+    Sensor-)BD: registrarLeitura(leitura: LeituraSensorDTO)
+
+    alt Persistência realizada com sucesso
+        BD->>BD: persistirLeitura(leitura: LeituraSensorDTO)
+        BD--)Sensor: confirmarArmazenamento(confirmacao: ConfirmacaoDTO)
+    else Falha na persistência
+        BD--)Sensor: notificarFalhaArmazenamento(erro: ErroDTO)
+    end
+
+    Sensor-)GUI: notificarNovaLeitura(leitura: LeituraSensorDTO)
+
+    Operador->>GUI: solicitarVisualizacao(filtro: FiltroLeituraDTO)
+
+    GUI->>BD: consultarLeiturasHistoricas(filtro: FiltroLeituraDTO)
+
+    alt Consulta realizada com sucesso
+        BD-->>GUI: LeiturasDTO
+        GUI->>GUI: renderizarLeituras(dados: LeiturasDTO)
+    else Falha na consulta
+        BD-)GUI: notificarFalhaConsulta(erro: ErroDTO)
+        GUI->>GUI: exibirErro(erro: ErroDTO)
+    end
 
 ```

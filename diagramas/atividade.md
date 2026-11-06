@@ -1,6 +1,5 @@
 ```mermaid
 
-
 swimlane-beta LR
 
   subgraph Maquina["Máquina"]
@@ -18,12 +17,13 @@ swimlane-beta LR
     F{Leitura válida?}
     G[Armazenar leitura]
     X[Descartar leitura inválida]
-    J[Registrar auditoria]
+    J[Registrar auditoria da leitura]
   end
 
   subgraph GUI["Interface Gráfica"]
     H[Consultar leituras atualizadas]
     I[Exibir leituras dos sensores]
+    Y[Exibir aviso de leitura inválida]
   end
 
   subgraph Operador
@@ -37,10 +37,8 @@ swimlane-beta LR
   D --> E
   E --> F
 
-  F -->|"[valor >= limite_min && valor <= limite_max]"| G
-  F -->|"[valor < limite_min || valor > limite_max]"| X
-
-  X --> L
+  F -->|"Sim"| G
+  F -->|"Não"| X
 
   G --> Fork
   Fork@{ shape: fork, label: "Fork" }
@@ -56,6 +54,12 @@ swimlane-beta LR
 
   Join --> K
   K --> L
+
+  X --> J
+  X --> Y
+  Y --> L
+
+
 
 
 ```
