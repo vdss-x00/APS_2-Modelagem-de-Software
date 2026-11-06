@@ -1,4 +1,61 @@
 ```mermaid
-flowchart LR
-    %%Código do diagrama vai aqui
+
+
+swimlane-beta LR
+
+  subgraph Maquina["Máquina"]
+    A([Início])
+    B[Disponibilizar dados operacionais]
+  end
+
+  subgraph Sensor
+    C[Capturar leitura dos sensores]
+    D[Enviar leitura coletada]
+  end
+
+  subgraph BancoDeDados["Banco de Dados"]
+    E[Receber leitura]
+    F{Leitura válida?}
+    G[Armazenar leitura]
+    X[Descartar leitura inválida]
+    J[Registrar auditoria]
+  end
+
+  subgraph GUI["Interface Gráfica"]
+    H[Consultar leituras atualizadas]
+    I[Exibir leituras dos sensores]
+  end
+
+  subgraph Operador
+    K[Visualizar leituras]
+    L([Fim])
+  end
+
+  A --> B
+  B --> C
+  C --> D
+  D --> E
+  E --> F
+
+  F -->|"[valor >= limite_min && valor <= limite_max]"| G
+  F -->|"[valor < limite_min || valor > limite_max]"| X
+
+  X --> L
+
+  G --> Fork
+  Fork@{ shape: fork, label: "Fork" }
+
+  Fork --> H
+  Fork --> J
+
+  H --> I
+
+  I --> Join
+  J --> Join
+  Join@{ shape: fork, label: "Join" }
+
+  Join --> K
+  K --> L
+
+
 ```
